@@ -190,7 +190,7 @@ void detKeypointsModern(vector<cv::KeyPoint> &keypoints, cv::Mat &img, string de
     cv::Ptr<cv::FeatureDetector> detector;
     if (detectorType.compare("SIFT") == 0)
     {
-        detector = cv::SIFT::create();
+        detector = cv::xfeatures2d::SIFT::create();
         
         double detectorTime = (double)cv::getTickCount();
         detector->detect(img, keypoints);
