@@ -148,11 +148,41 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    // ...
+    // auxiliary variables
+    double dT = 1/frameRate; // time between two measurements in seconds
+
+    // find closest distance to Lidar points 
+    double minXPrev = 1e9, minXCurr = 1e9;
+    for(auto it=lidarPointsPrev.begin(); it!=lidarPointsPrev.end(); ++it) {
+        minXPrev = minXPrev>it->x ? it->x : minXPrev;
+    }
+
+    for(auto it=lidarPointsCurr.begin(); it!=lidarPointsCurr.end(); ++it) {
+        minXCurr = minXCurr>it->x ? it->x : minXCurr;
+    }
+
+    // compute TTC from both measurements
+    TTC = minXCurr * dT / (minXPrev-minXCurr);
 }
 
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
-    // ...
+    //for (vector<BoundingBox>::iterator it1 = prevFrame.boundingBoxes.begin(); it1 != prevFrame.boundingBoxes.end(); ++it1)
+    for (auto it1= prevFrame.boundingBoxes.begin(); it1 != prevFrame.boundingBoxes.end(); ++it1)
+    {
+        float minDist = 1e8;
+        int prevID, currID = 0;
+        for (auto it2 = currFrame.boundingBoxes.begin(); it2 != currFrame.boundingBoxes.end(); ++it2)
+        {
+            float minBoxDist = abs(it1->roi.x - it2->roi.x) + abs(it1->roi.y - it2->roi.y);
+            if (minBoxDist < minDist)
+            {
+                minDist = minBoxDist;
+                prevID = it1->boxID;
+                currID = it2->boxID;
+            }
+        }
+        bbBestMatches.insert(pair<int, int>(prevID, currID));
+    }
 }
