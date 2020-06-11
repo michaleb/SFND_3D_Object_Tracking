@@ -120,7 +120,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 
     // display image
     string windowName = "3D Objects";
-    cv::namedWindow(windowName, 1);
+    cv::namedWindow(windowName, cv::WINDOW_NORMAL);
     cv::imshow(windowName, topviewImg);
 
     if(bWait)
@@ -145,44 +145,62 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 }
 
 
+double getMedian(vector<LidarPoint> lidarPoints)
+{
+    //Helper function to find the median distance in the x-direction
+    //std::cout << "The median is " << v[v.size()/2] << '\n';
+    
+    vector<double> LPoints;
+    for (vector<LidarPoint>::iterator it1=lidarPoints.begin(); it1 != lidarPoints.end(); ++it1)
+    {
+        LPoints.push_back(it1->x);
+    }
+
+    vector<double>::iterator b = LPoints.begin();
+    vector<double>::iterator e = LPoints.end();
+    vector<double>::iterator med = b;
+    advance(med, LPoints.size()/2);
+    nth_element(b, med, e);
+
+    return LPoints[LPoints.size()/2];
+}
+
+
+
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
     // auxiliary variables
     double dT = 1/frameRate; // time between two measurements in seconds
+           
+    double medianXPrev =  getMedian(lidarPointsPrev);
+    //cout << "PREV-MEDIAN" << '\t' << medianXPrev << endl;
 
-    // find closest distance to Lidar points 
-    double minXPrev = 1e9, minXCurr = 1e9;
-    for(auto it=lidarPointsPrev.begin(); it!=lidarPointsPrev.end(); ++it) {
-        minXPrev = minXPrev>it->x ? it->x : minXPrev;
-    }
-
-    for(auto it=lidarPointsCurr.begin(); it!=lidarPointsCurr.end(); ++it) {
-        minXCurr = minXCurr>it->x ? it->x : minXCurr;
-    }
+    double medianXCurr = getMedian(lidarPointsCurr);
 
     // compute TTC from both measurements
-    TTC = minXCurr * dT / (minXPrev-minXCurr);
+    TTC = medianXCurr * dT / (medianXPrev-medianXCurr);
+    
 }
 
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
-    //for (vector<BoundingBox>::iterator it1 = prevFrame.boundingBoxes.begin(); it1 != prevFrame.boundingBoxes.end(); ++it1)
-    for (auto it1= prevFrame.boundingBoxes.begin(); it1 != prevFrame.boundingBoxes.end(); ++it1)
+    int currID = -1;
+    for (std::vector<BoundingBox>::iterator it1 = prevFrame.boundingBoxes.begin(); it1 != prevFrame.boundingBoxes.end(); ++it1)
     {
-        float minDist = 1e8;
-        int prevID, currID = 0;
-        for (auto it2 = currFrame.boundingBoxes.begin(); it2 != currFrame.boundingBoxes.end(); ++it2)
+        double minDist = 1e8;
+        int prevID = (*it1).boxID;
+                
+        for (std::vector<BoundingBox>:: iterator it2 = currFrame.boundingBoxes.begin(); it2 != currFrame.boundingBoxes.end(); ++it2)
         {
-            float minBoxDist = abs(it1->roi.x - it2->roi.x) + abs(it1->roi.y - it2->roi.y);
+            double minBoxDist = abs((*it1).roi.x - (*it2).roi.x) + abs((*it1).roi.y - (*it2).roi.y);
             if (minBoxDist < minDist)
             {
                 minDist = minBoxDist;
-                prevID = it1->boxID;
-                currID = it2->boxID;
+                currID = (*it2).boxID;
             }
         }
-        bbBestMatches.insert(pair<int, int>(prevID, currID));
+        bbBestMatches.insert({prevID, currID}); 
     }
 }
