@@ -120,8 +120,9 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 
     // display image
     string windowName = "3D Objects";
-    cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+    cv::namedWindow(windowName, 0.75);//cv::WINDOW_NORMAL
     cv::imshow(windowName, topviewImg);
+    cv::imwrite("../images/example.png",topviewImg);
 
     if(bWait)
     {
@@ -133,7 +134,15 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 // associate a given bounding box with the keypoints it contains
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
-    // ...
+    for (vector<cv::DMatch>::iterator it1 = kptMatches.begin(); it1 != kptMatches.end(); ++it1)
+    {
+        //Check if the current bounding box contains the keypoint in kptsCurr indexed by kptmatches
+        if (boundingBox.roi.contains(kptsCurr[it1->trainIdx].pt))
+        {
+            boundingBox.kptMatches.push_back(*it1);
+        }
+    }
+    
 }
 
 
@@ -141,14 +150,58 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
-    // ...
+    // compute distance ratios between all matched keypoints
+    vector<double> distRatios; // stores the distance ratios for all keypoints between curr. and prev. frame
+    for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1)
+    { // outer kpt. loop
+
+        // get current keypoint and its matched partner in the prev. frame
+        cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
+        cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
+
+        for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2)
+        { // inner kpt.-loop
+
+            double minDist = 100.0; // min. required distance
+
+            // get next keypoint and its matched partner in the prev. frame
+            cv::KeyPoint kpInnerCurr = kptsCurr.at(it2->trainIdx);
+            cv::KeyPoint kpInnerPrev = kptsPrev.at(it2->queryIdx);
+
+            // compute distances and distance ratios
+            double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
+            double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
+
+            if (distPrev > std::numeric_limits<double>::epsilon() && distCurr >= minDist)
+            { // avoid division by zero
+
+                double distRatio = distCurr / distPrev;
+                distRatios.push_back(distRatio);
+            }
+        } // eof inner loop over all matched kpts
+    }     // eof outer loop over all matched kpts
+
+    // only continue if list of distance ratios is not empty
+    if (distRatios.size() == 0)
+    {
+        TTC = NAN;
+        return;
+    }
+
+    std::sort(distRatios.begin(), distRatios.end());
+    long medIndex = floor(distRatios.size() / 2.0);
+    double medDistRatio = distRatios.size() % 2 == 0 ? (distRatios[medIndex - 1] + distRatios[medIndex]) / 2.0 : distRatios[medIndex]; // compute median dist. ratio to remove outlier influence
+
+    double dT = 1 / frameRate;
+    TTC = -dT / (1 - medDistRatio);
+    
 }
 
 
 double getMedian(vector<LidarPoint> lidarPoints)
 {
-    //Helper function to find the median distance in the x-direction
-    //std::cout << "The median is " << v[v.size()/2] << '\n';
+    //Helper function to find the median distance, in the x-direction, of lidar points from 
+    // objects directly infront of ego car.
     
     vector<double> LPoints;
     for (vector<LidarPoint>::iterator it1=lidarPoints.begin(); it1 != lidarPoints.end(); ++it1)
@@ -156,13 +209,11 @@ double getMedian(vector<LidarPoint> lidarPoints)
         LPoints.push_back(it1->x);
     }
 
-    vector<double>::iterator b = LPoints.begin();
-    vector<double>::iterator e = LPoints.end();
-    vector<double>::iterator med = b;
-    advance(med, LPoints.size()/2);
-    nth_element(b, med, e);
-
-    return LPoints[LPoints.size()/2];
+    std::sort(LPoints.begin(), LPoints.end());
+    long medIndex = floor(LPoints.size() / 2.0);
+    double medValue = LPoints.size() % 2 == 0 ? (LPoints[medIndex - 1] + LPoints[medIndex]) / 2.0 : LPoints[medIndex]; // compute median dist. ratio to remove outlier influence
+    
+    return medValue;
 }
 
 
@@ -172,7 +223,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 {
     // auxiliary variables
     double dT = 1/frameRate; // time between two measurements in seconds
-           
+
     double medianXPrev =  getMedian(lidarPointsPrev);
     //cout << "PREV-MEDIAN" << '\t' << medianXPrev << endl;
 
@@ -194,6 +245,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
                 
         for (std::vector<BoundingBox>:: iterator it2 = currFrame.boundingBoxes.begin(); it2 != currFrame.boundingBoxes.end(); ++it2)
         {
+            //Check L1 norm distance between bounding boxes within adjacent frames for a match 
             double minBoxDist = abs((*it1).roi.x - (*it2).roi.x) + abs((*it1).roi.y - (*it2).roi.y);
             if (minBoxDist < minDist)
             {
