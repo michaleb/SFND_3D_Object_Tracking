@@ -25,6 +25,14 @@ using namespace std;
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
 {
+    /*Setup to write performance values to file*/
+
+    fstream results;
+    results.open("../results/results_ttc-estimates2.csv", fstream::out | fstream::app);
+
+    results <<"Image Index" << ","  << "Detector Type" << ","<< "Descriptor Type" <<
+     ","<< "TTC Camera"<< ","<< endl;    
+    
     /* INIT VARIABLES AND DATA STRUCTURES */
 
     // data location
@@ -144,13 +152,13 @@ int main(int argc, const char *argv[])
 
         /* DETECT IMAGE KEYPOINTS */
 
-        // convert current image to grayscale
+        // convert current image to grayscale 
         cv::Mat imgGray;
         cv::cvtColor((dataBuffer.end()-1)->cameraImg, imgGray, cv::COLOR_BGR2GRAY);
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "FAST";
+        string detectorType = "HARRIS"; //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
         if (detectorType.compare("SHITOMASI") == 0)
         {
@@ -201,12 +209,12 @@ int main(int argc, const char *argv[])
 
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
+            string descriptorsubType = "DES_BINARY"; // DES_BINARY, DES_HOG
             string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                             matches, descriptorType, matcherType, selectorType);
+                             matches, descriptorsubType, matcherType, selectorType);
 
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
@@ -252,6 +260,7 @@ int main(int argc, const char *argv[])
                 }
 
                 // compute TTC for current match
+                //cout << "Current Lidar POINTS" << '\t' << currBB->lidarPoints.size() << '\t' << "Previous Lidar POINTS" << '\t' << prevBB->lidarPoints.size() << endl;
                 if( currBB->lidarPoints.size()>0 && prevBB->lidarPoints.size()>0 ) // only compute TTC if we have Lidar points
                 {
                     //// STUDENT ASSIGNMENT
@@ -267,6 +276,9 @@ int main(int argc, const char *argv[])
                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);                    
                     computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
                     //// EOF STUDENT ASSIGNMENT
+
+                    results <<imgIndex <<"," << detectorType << ","<< descriptorType << ","<< ttcCamera<< ","<< endl;
+
 
                     bVis = true;
                     if (bVis)
