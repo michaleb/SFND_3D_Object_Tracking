@@ -186,22 +186,19 @@ The outliers found in the current an previous keypoint vectors are removed by co
 }
 ```
 ### 5. Performance evaluation 1
-Ex.1 - The TTC for Figure 1 (14.091s) is less than that of Figure 2 (16.6894s) although Figure 1 precedes Figure 2 in the frame sequence as the vehicle decelerates getting closer to ego car. This discrepancy is as a consequence of the  median distance in Figure 1 being much closer to the Xmin value, based on the distribution of lidar points, which is closer to the ego car.
+#### Example 1 - The TTC for Figure 1 (14.091s) is less than that of Figure 2 (16.6894s) although Figure 1 precedes Figure 2 in the frame sequence as the vehicle decelerates getting closer to ego car. This discrepancy is as a consequence of the  median distance in Figure 1 being much closer to the Xmin value, based on the distribution of lidar points, which is closer to the ego car.
 
-![alt text][image5]       
-#### Figure 1             
-![alt text][image6]
-#### Figure 2
+#### Figure 1
+![alt text][image5]  
+#### Figure 2            
+![alt text][image6]  
 
 
-Ex.2 - The TTC for Figure 3 (12.8086s) is as expected greater than that of Figure 4 (8.9598s) as the vehicle decelerates and gets closer to ego car. However, a difference of > 3s is unexpected but is as a result of the lidar distance measurements being spread out over a larger range of values hence the median distance is higher.
-
-![alt text][image7]
+#### Example 2 - The TTC for Figure 3 (12.8086s) is as expected greater than that of Figure 4 (8.9598s) as the vehicle decelerates and gets closer to ego car. However, a difference of > 3s is unexpected but is as a result of the lidar distance measurements being spread out over a larger range of values hence the median distance is higher.  
 #### Figure 3
-![alt text][image8]
+![alt text][image7]  
 #### Figure 4
-
-
+![alt text][image8]  
 
 ### 6. Performance evaluation 2
 
@@ -222,7 +219,7 @@ Ex.2 - The TTC for Figure 3 (12.8086s) is as expected greater than that of Figur
 |SIFT         |BRISK          |11.6767   |12.5156  |0.8389|
 |SIFT         |BRIEF          |12.0906   |12.5156  |0.4249|  
 
-Examples of TTC Camera estimates compared to TTC Lidar estimates are shown below.
+#### Examples of TTC Camera estimates compared to TTC Lidar estimates are shown below.
 
 ![alt text][image0]  ![alt text][image2]  
 ![alt text][image1]  ![alt text][image4]
