@@ -73,9 +73,9 @@ I used a quicker approach for the matching bounding boxes (BB) task that uses th
 ### 2. Compute Lidar-based TTC
 The Lidar based time-to-collision estimates were obtained by using the previous and current lidar points from the car directly infront of the ego car. Based on the Constant Velocity Model the TTC is given by d1 * dt / (d0 - d1) where:
 
-d0 - distance measured from previous frame
-d1 - distance measured from current frame
-dt - elapsed time between frames
+d0 - distance measured from previous frame  
+d1 - distance measured from current frame  
+dt - elapsed time between frames  
 
 To calculate the distance to the car a median value was used for each frame. This value reduced the error in  due to outliers. A helper function ,getMedian, was used to acheive this task. Code is implemented at `line # 200:216 and 220:234 in camFusion_Stdent.cpp `
 
@@ -220,15 +220,14 @@ Ex.2 - The TTC for Figure 3 (12.8086s) is as expected greater than that of Figur
 |AKAZE        |BRISK          |11.9055   |12.5156  |0.6101|
 |AKAZE        |BRIEF          |13.2804   |12.5156  |0.7648|
 |SIFT         |BRISK          |11.6767   |12.5156  |0.8389|
-|SIFT         |BRIEF          |12.0906   |12.5156  |0.4249|
-
+|SIFT         |BRIEF          |12.0906   |12.5156  |0.4249|  
 
 Examples of TTC Camera estimates compared to TTC Lidar estimates are shown below.
 
 ![alt text][image0]  ![alt text][image2]  
 ![alt text][image1]  ![alt text][image4]
 
-Despite the use of the median distance there are NaN and -inf values from the ComputeTTCCamera function. Some detectors HARRIS and ORB produce very large differences between camera TTC and the Lidar TTC. (see results/results_ttc-estimates.csv) 
+Despite the use of the median distance there are NaN and -inf values from the ComputeTTCCamera function. Some detectors HARRIS and ORB produce very large differences between camera and lidar TTC. (see results/results_ttc-estimates.csv) 
 
 There are some descrepancies in the camera TTC values generated as very small distances are permitted between the inner and outer previous keypoints when calculating the distance ratios which gives rise to large median distances in the ComputeTTCCamera function resulting in higher time-to-collision values.
 
