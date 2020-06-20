@@ -193,13 +193,11 @@ The outliers found in the current an previous keypoint vectors are removed by co
 #### Figure 2            
 ![alt text][image6]  
 
-
 #### Example 2 - The TTC for Figure 3 (12.8086s) is as expected greater than that of Figure 4 (8.9598s) as the vehicle decelerates and gets closer to ego car. However, a difference of > 3s is unexpected but is as a result of the lidar distance measurements being spread out over a larger range of values hence the median distance is higher.  
 #### Figure 3
 ![alt text][image7]  
 #### Figure 4
-![alt text][image8]  
-
+![alt text][image8]
 ### 6. Performance evaluation 2
 
 |Detector Type|Descriptor Type|TTC Camera|TTC Lidar|TTC diff         |
@@ -220,9 +218,8 @@ The outliers found in the current an previous keypoint vectors are removed by co
 |SIFT         |BRIEF          |12.0906   |12.5156  |0.4249|  
 
 #### Examples of TTC Camera estimates compared to TTC Lidar estimates are shown below.
-
 ![alt text][image0]  ![alt text][image2]  
-![alt text][image1]  ![alt text][image4]
+![alt text][image1]  ![alt text][image4]  
 
 Despite the use of the median distance there are NaN and -inf values from the ComputeTTCCamera function. Some detectors HARRIS and ORB produce very large differences between camera and lidar TTC. (see results/results_ttc-estimates.csv) 
 
