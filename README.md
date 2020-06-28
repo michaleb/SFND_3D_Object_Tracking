@@ -2,7 +2,7 @@
 
 In this project I use keypoint detectors, descriptors, and methods to match them between successive images. Detect objects in an image using the YOLO deep-learning framework and associate regions in a camera image with Lidar points in 3D space in an effort to calculate time-to-collision (TTC) of an ego car with vehicle directly in front of it.
 
-<img src="images/key_images1.png" width="640" height="480" />
+<img src="images/key_images1.png" width="800" height="480" />
 
 The following tasks are executed to acheive this goal:
 
