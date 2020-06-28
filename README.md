@@ -1,14 +1,15 @@
 # SFND 3D Object Tracking
 
-In this project I use keypoint detectors, descriptors, and methods to match them between successive images. Detect objects in an image using the YOLO deep-learning framework and associate regions in a camera image with Lidar points in 3D space. 
+In this project I use keypoint detectors, descriptors, and methods to match them between successive images. Detect objects in an image using the YOLO deep-learning framework and associate regions in a camera image with Lidar points in 3D space in an effort to calculate time-to-collision (TTC) of an ego car with vehicle directly in front of it.
 
 <img src="images/course_code_structure.png" width="779" height="414" />
 
-In this final project, you will implement the missing parts in the schematic. To do this, you will complete four major tasks: 
-1. First, you will develop a way to match 3D objects over time by using keypoint correspondences. 
-2. Second, you will compute the TTC based on Lidar measurements. 
-3. You will then proceed to do the same using the camera, which requires to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches. 
-4. And lastly, you will conduct various tests with the framework. Your goal is to identify the most suitable detector/descriptor combination for TTC estimation and also to search for problems that can lead to faulty measurements by the camera or Lidar sensor. In the last course of this Nanodegree, you will learn about the Kalman filter, which is a great way to combine the two independent TTC measurements into an improved version which is much more reliable than a single sensor alone can be. But before we think about such things, let us focus on your final project in the camera course. 
+The following tasks are executed to acheive this goal:
+
+1. Match 3D objects over time by using keypoint correspondences. 
+2. Compute the TTC based on Lidar measurements. 
+3. For camera, associate keypoint matches to regions of interest then to compute TTC based on those matches. 
+4. Conduct various tests with the framework to identify the most suitable detector/descriptor combination for TTC estimation and identify problems that can lead to faulty measurements by the camera or Lidar sensor. 
 
 ## Current local configuration
 * cmake = 3.13.2
